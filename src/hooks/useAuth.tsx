@@ -26,12 +26,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error getting session:', error);
+        } else {
+          console.log('Initial session loaded:', session?.user?.email || 'No user');
         }
         setSession(session);
         setUser(session?.user ?? null);
-        setLoading(false);
       } catch (error) {
         console.error('Error in getInitialSession:', error);
+      } finally {
         setLoading(false);
       }
     };
@@ -41,9 +43,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('Auth state changed:', event, session?.user?.email);
+        console.log('Auth state changed:', event, session?.user?.email || 'No user');
         setSession(session);
         setUser(session?.user ?? null);
+        
+        if (event === 'SIGNED_IN') {
+          console.log('User signed in successfully');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+        }
+        
         setLoading(false);
       }
     );
@@ -52,28 +61,54 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signUp = async (email: string, password: string, displayName?: string, captchaToken?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl,
-        data: {
-          display_name: displayName || email.split('@')[0]
-        },
-        captchaToken
+    try {
+      console.log('Attempting to sign up user:', email);
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            display_name: displayName || email.split('@')[0]
+          },
+          captchaToken
+        }
+      });
+      
+      if (error) {
+        console.error('Sign up error:', error);
+      } else {
+        console.log('Sign up successful:', data.user?.email);
       }
-    });
-    return { error };
+      
+      return { error };
+    } catch (error: any) {
+      console.error('Unexpected sign up error:', error);
+      return { error };
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
+    try {
+      console.log('Attempting to sign in user:', email);
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('Sign in error:', error.message);
+      } else {
+        console.log('Sign in successful:', data.user?.email);
+      }
+      
+      return { error };
+    } catch (error: any) {
+      console.error('Unexpected sign in error:', error);
+      return { error };
+    }
   };
 
   const signOut = async () => {

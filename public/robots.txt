@@ -22,8 +22,8 @@ Disallow: /*.pptx$
 # Crawl-delay: 10  # Uncomment if you need to limit crawl rate
 
 # Sitemap locations
-Sitemap: https://smarthubcomputers.com/sitemap.xml
-Sitemap: https://smarthubcomputers.com/sitemap-index.xml
+Sitemap: https://kaffaonline.store
+Sitemap: https://kaffaonline.store
 
 # Special instructions for major search engines
 User-agent: Googlebot

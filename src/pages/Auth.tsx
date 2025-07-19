@@ -72,8 +72,8 @@ const Auth = () => {
       });
     } else {
       toast({
-        title: 'Sign Up Successful!',
-        description: 'Please check your email to verify your account and complete the registration process.',
+        title: 'Account Created Successfully!',
+        description: 'Your account has been created and you are now logged in. Welcome to Kaffa!',
       });
       // Clear the form after successful signup
       setFormData({

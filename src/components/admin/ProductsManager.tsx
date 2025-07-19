@@ -102,7 +102,12 @@ const ProductsManager = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (formData.images.length === 0 && !editingProduct) {
+    if (!formData.name || !formData.price || !formData.category) {
+      toast.error('Please fill in all required fields (Name, Price, Category)');
+      return;
+    }
+    
+    if (formData.images.length === 0 && !editingProduct?.images?.length) {
       toast.error('Please upload at least one product image');
       return;
     }
@@ -114,23 +119,28 @@ const ProductsManager = () => {
       
       // Upload files if any are selected
       if (formData.images.length > 0) {
+        console.log('Uploading images...', formData.images.length);
         imageUrls = await uploadFiles(formData.images);
+        console.log('Images uploaded successfully:', imageUrls);
       }
       
       const productData = {
-        name: formData.name,
-        description: formData.description,
+        name: formData.name.trim(),
+        description: formData.description.trim(),
         price: parseFloat(formData.price),
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         category: formData.category,
-        image_url: imageUrls.length > 0 ? imageUrls[0] : (editingProduct?.image_url || ''),
+        image_url: imageUrls.length > 0 ? imageUrls[0] : (editingProduct?.image_url || null),
         images: imageUrls.length > 0 ? imageUrls : (editingProduct?.images || []),
-        badge: formData.badge,
+        badge: formData.badge.trim() || null,
         badge_color: formData.badge_color,
-        rating: parseFloat(formData.rating),
-        reviews_count: parseInt(formData.reviews_count),
+        rating: parseFloat(formData.rating) || 0,
+        reviews_count: parseInt(formData.reviews_count) || 0,
         in_stock: formData.in_stock,
+        stock: 100, // Default stock value
       };
+
+      console.log('Saving product data:', productData);
 
       if (editingProduct) {
         await updateProduct(editingProduct.id, productData);
@@ -144,7 +154,7 @@ const ProductsManager = () => {
       toast.success(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
     } catch (error) {
       console.error('Error saving product:', error);
-      toast.error('Failed to save product. Please try again.');
+      toast.error(`Failed to save product: ${error.message}`);
     } finally {
       setIsUploading(false);
     }
@@ -402,9 +412,9 @@ const ProductsManager = () => {
                     </div>
                   </div>
                   
-                  {!editingProduct && previewImages.length === 0 && (
+                  {previewImages.length === 0 && (
                     <p className="text-sm text-muted-foreground">
-                      Please upload at least one product image from your computer
+                      Please upload at least one product image from your computer. Images will be stored securely and won't break over time.
                     </p>
                   )}
                 </div>

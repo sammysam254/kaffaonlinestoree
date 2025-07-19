@@ -205,25 +205,43 @@ export const useAdmin = () => {
   // File upload function
   const uploadFiles = async (files: File[]): Promise<string[]> => {
     const urls: string[] = [];
+    
+    console.log(`Starting upload of ${files.length} files...`);
+    
     for (const file of files) {
       const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
       if (!allowed.includes(file.type)) {
         throw new Error(`File type not allowed: ${file.type}`);
       }
 
-      const filePath = `products/${Date.now()}-${file.name}`;
+      // Create unique filename to avoid conflicts
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const filePath = `products/${fileName}`;
+      
+      console.log(`Uploading file: ${filePath}`);
+      
       const { error } = await supabase.storage
         .from('product-images')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Upload error:', error);
+        throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('product-images')
         .getPublicUrl(filePath);
 
+      console.log(`File uploaded successfully: ${publicUrl}`);
       urls.push(publicUrl);
     }
+    
+    console.log(`All files uploaded successfully: ${urls.length} URLs`);
     return urls;
   };
 

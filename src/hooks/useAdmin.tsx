@@ -310,6 +310,18 @@ export const useAdmin = () => {
     return data || [];
   };
 
+  const createOrder = async (orderData: any) => {
+    const { data, error } = await supabase
+      .from('orders')
+      .insert([orderData])
+      .select()
+      .single();
+
+    if (error) throw error;
+    toast.success('Order created successfully');
+    return data;
+  };
+
   const updateOrderStatus = async (id: string, status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled') => {
     const { data, error } = await supabase
       .from('orders')
@@ -595,6 +607,7 @@ export const useAdmin = () => {
     deleteProduct,
     // Orders
     fetchOrders,
+    createOrder,
     updateOrderStatus,
     // Messages
     fetchMessages,

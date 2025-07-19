@@ -95,7 +95,7 @@ const MpesaPaymentsManager = () => {
           M-Pesa Payments ({payments.length})
         </h3>
         <div className="text-sm text-muted-foreground">
-          Payment confirmation number: <span className="font-mono font-bold">0704144239</span>
+          Payment confirmation number: <span className="font-mono font-bold">0743049549</span>
         </div>
       </div>
 

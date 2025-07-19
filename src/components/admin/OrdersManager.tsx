@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useAdmin, Order } from '@/hooks/useAdmin';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -10,15 +12,36 @@ import { Eye, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
 
 const OrdersManager = () => {
-  const { fetchOrders, updateOrderStatus } = useAdmin();
+  const { fetchOrders, createOrder, updateOrderStatus, fetchProducts } = useAdmin();
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [products, setProducts] = useState<any[]>([]);
+  const [formData, setFormData] = useState({
+    customer_name: '',
+    customer_email: '',
+    customer_phone: '',
+    shipping_address: '',
+    product_id: '',
+    quantity: 1,
+    payment_method: 'mpesa'
+  });
 
   useEffect(() => {
     loadOrders();
+    loadProducts();
   }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await fetchProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error('Error loading products:', error);
+    }
+  };
 
   const loadOrders = async () => {
     try {
@@ -40,6 +63,50 @@ const OrdersManager = () => {
     } catch (error) {
       console.error('Error updating order status:', error);
       toast.error('Failed to update order status');
+    }
+  };
+
+  const handleCreateOrder = async () => {
+    if (!formData.customer_name || !formData.customer_email || !formData.product_id) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      const selectedProduct = products.find(p => p.id === formData.product_id);
+      if (!selectedProduct) {
+        toast.error('Selected product not found');
+        return;
+      }
+
+      const totalAmount = selectedProduct.price * formData.quantity;
+
+      await createOrder({
+        customer_name: formData.customer_name,
+        customer_email: formData.customer_email,
+        customer_phone: formData.customer_phone,
+        shipping_address: formData.shipping_address,
+        product_id: formData.product_id,
+        quantity: formData.quantity,
+        total_amount: totalAmount,
+        payment_method: formData.payment_method,
+        status: 'pending'
+      });
+
+      setIsCreateDialogOpen(false);
+      setFormData({
+        customer_name: '',
+        customer_email: '',
+        customer_phone: '',
+        shipping_address: '',
+        product_id: '',
+        quantity: 1,
+        payment_method: 'mpesa'
+      });
+      loadOrders();
+    } catch (error) {
+      console.error('Error creating order:', error);
+      toast.error('Failed to create order');
     }
   };
 
@@ -80,6 +147,94 @@ const OrdersManager = () => {
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-semibold">Orders ({orders.length})</h3>
         <div className="flex space-x-2">
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>Create Order</Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Create New Order</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Customer Name *</label>
+                  <Input
+                    type="text"
+                    value={formData.customer_name}
+                    onChange={(e) => setFormData({...formData, customer_name: e.target.value})}
+                    placeholder="Enter customer name"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Customer Email *</label>
+                  <Input
+                    type="email"
+                    value={formData.customer_email}
+                    onChange={(e) => setFormData({...formData, customer_email: e.target.value})}
+                    placeholder="Enter customer email"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Customer Phone</label>
+                  <Input
+                    type="text"
+                    value={formData.customer_phone}
+                    onChange={(e) => setFormData({...formData, customer_phone: e.target.value})}
+                    placeholder="Enter customer phone"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Product *</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formData.product_id}
+                    onChange={(e) => setFormData({...formData, product_id: e.target.value})}
+                  >
+                    <option value="">Select a product</option>
+                    {products.map((product) => (
+                      <option key={product.id} value={product.id}>
+                        {product.name} - KES {product.price.toLocaleString()}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Quantity</label>
+                  <Input
+                    type="number"
+                    min="1"
+                    value={formData.quantity}
+                    onChange={(e) => setFormData({...formData, quantity: parseInt(e.target.value) || 1})}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Shipping Address</label>
+                  <Textarea
+                    value={formData.shipping_address}
+                    onChange={(e) => setFormData({...formData, shipping_address: e.target.value})}
+                    placeholder="Enter shipping address"
+                    rows={3}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Payment Method</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md"
+                    value={formData.payment_method}
+                    onChange={(e) => setFormData({...formData, payment_method: e.target.value})}
+                  >
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cash">Cash</option>
+                    <option value="card">Card</option>
+                  </select>
+                </div>
+                <Button onClick={handleCreateOrder} className="w-full">
+                  Create Order
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
           <Button variant="outline" onClick={loadOrders}>
             Refresh
           </Button>

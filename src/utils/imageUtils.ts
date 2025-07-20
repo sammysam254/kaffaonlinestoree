@@ -1,36 +1,25 @@
 import { supabase } from '@/integrations/supabase/client';
 
-export const getImageUrl = (imagePath: string | null): string => {
-  if (!imagePath) {
-    return '/placeholder-product.jpg'; // fallback image
+export const getImageUrl = (product: any): string => {
+  // If we have base64 image data stored in database, use it
+  if (product?.image_data && product?.image_type) {
+    return `data:${product.image_type};base64,${product.image_data}`;
   }
 
-  // If it's already a full URL, return as is
-  if (imagePath.startsWith('http')) {
-    return imagePath;
+  // Legacy: Check for image_url field
+  if (product?.image_url) {
+    return product.image_url;
   }
 
-  // If it's a storage path, get the public URL
-  if (imagePath.startsWith('product-images/')) {
-    const { data } = supabase.storage
-      .from('product-images')
-      .getPublicUrl(imagePath);
-    return data.publicUrl;
+  // Legacy: Check for images array
+  if (product?.images && product.images.length > 0) {
+    return product.images[0];
   }
 
-  // If it's just a filename, assume it's in product-images bucket
-  const { data } = supabase.storage
-    .from('product-images')
-    .getPublicUrl(`product-images/${imagePath}`);
-  return data.publicUrl;
+  // Fallback to placeholder image
+  return '/placeholder-product.jpg';
 };
 
-export const getProductImageUrl = (product: { image_url?: string | null; images?: string[] | null }): string => {
-  // Try to get from images array first
-  if (product.images && product.images.length > 0) {
-    return getImageUrl(product.images[0]);
-  }
-  
-  // Fall back to image_url
-  return getImageUrl(product.image_url);
+export const getProductImageUrl = (product: any): string => {
+  return getImageUrl(product);
 };

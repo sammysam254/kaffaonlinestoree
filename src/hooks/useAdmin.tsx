@@ -202,11 +202,11 @@ export const useAdmin = () => {
     checkAdminStatus();
   }, [user]);
 
-  // File upload function
-  const uploadFiles = async (files: File[]): Promise<string[]> => {
-    const urls: string[] = [];
+  // Convert files to base64 for database storage
+  const convertFilesToBase64 = async (files: File[]): Promise<Array<{data: string, type: string}>> => {
+    const results: Array<{data: string, type: string}> = [];
     
-    console.log(`Starting upload of ${files.length} files...`);
+    console.log(`Converting ${files.length} files to base64...`);
     
     for (const file of files) {
       const allowed = ["image/jpeg", "image/png", "image/gif", "image/webp", "image/svg+xml"];
@@ -214,35 +214,27 @@ export const useAdmin = () => {
         throw new Error(`File type not allowed: ${file.type}`);
       }
 
-      // Create unique filename to avoid conflicts
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-      const filePath = `products/${fileName}`;
+      // Convert file to base64
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const result = reader.result as string;
+          // Remove the data:image/jpeg;base64, part
+          const base64Data = result.split(',')[1];
+          resolve(base64Data);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
       
-      console.log(`Uploading file: ${filePath}`);
-      
-      const { error } = await supabase.storage
-        .from('product-images')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
-
-      if (error) {
-        console.error('Upload error:', error);
-        throw new Error(`Failed to upload ${file.name}: ${error.message}`);
-      }
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('product-images')
-        .getPublicUrl(filePath);
-
-      console.log(`File uploaded successfully: ${publicUrl}`);
-      urls.push(publicUrl);
+      results.push({
+        data: base64,
+        type: file.type
+      });
     }
     
-    console.log(`All files uploaded successfully: ${urls.length} URLs`);
-    return urls;
+    console.log(`All files converted successfully: ${results.length} images`);
+    return results;
   };
 
   // Product management
@@ -386,9 +378,12 @@ export const useAdmin = () => {
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching users:', error);
+      throw error;
+    }
     
-    // Fetch user roles separately
+    // Fetch user roles separately to avoid relation issues
     const usersWithRoles = await Promise.all(
       (data || []).map(async (user) => {
         const { data: roles } = await supabase
@@ -617,7 +612,7 @@ export const useAdmin = () => {
     isAdmin,
     loading,
     // File uploads
-    uploadFiles,
+    convertFilesToBase64,
     // Products
     fetchProducts,
     createProduct,

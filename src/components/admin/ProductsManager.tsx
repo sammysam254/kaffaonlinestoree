@@ -12,6 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Star } from 'lucide-react';
 import { toast } from 'sonner';
+import { getImageUrl } from '@/utils/imageUtils';
 
 const ProductsManager = () => {
   const { 
@@ -19,7 +20,7 @@ const ProductsManager = () => {
     createProduct, 
     updateProduct, 
     deleteProduct,
-    uploadFiles,
+    convertFilesToBase64,
     isAdmin,
     loading: adminLoading
   } = useAdmin();
@@ -107,7 +108,7 @@ const ProductsManager = () => {
       return;
     }
     
-    if (formData.images.length === 0 && !editingProduct?.images?.length) {
+    if (formData.images.length === 0 && !editingProduct?.image_data) {
       toast.error('Please upload at least one product image');
       return;
     }
@@ -115,13 +116,20 @@ const ProductsManager = () => {
     setIsUploading(true);
     
     try {
-      let imageUrls: string[] = [];
+      let imageData: string | null = null;
+      let imageType: string | null = null;
       
-      // Upload files if any are selected
+      // Convert files to base64 if any are selected
       if (formData.images.length > 0) {
-        console.log('Uploading images...', formData.images.length);
-        imageUrls = await uploadFiles(formData.images);
-        console.log('Images uploaded successfully:', imageUrls);
+        console.log('Converting images to base64...', formData.images.length);
+        const convertedImages = await convertFilesToBase64(formData.images);
+        console.log('Images converted successfully:', convertedImages.length);
+        
+        // Use the first image as the primary image
+        if (convertedImages.length > 0) {
+          imageData = convertedImages[0].data;
+          imageType = convertedImages[0].type;
+        }
       }
       
       const productData = {
@@ -130,8 +138,8 @@ const ProductsManager = () => {
         price: parseFloat(formData.price),
         original_price: formData.original_price ? parseFloat(formData.original_price) : null,
         category: formData.category,
-        image_url: imageUrls.length > 0 ? imageUrls[0] : (editingProduct?.image_url || null),
-        images: imageUrls.length > 0 ? imageUrls : (editingProduct?.images || []),
+        image_data: imageData || editingProduct?.image_data || null,
+        image_type: imageType || editingProduct?.image_type || null,
         badge: formData.badge.trim() || null,
         badge_color: formData.badge_color,
         rating: parseFloat(formData.rating) || 0,
@@ -175,7 +183,12 @@ const ProductsManager = () => {
       reviews_count: product.reviews_count.toString(),
       in_stock: product.in_stock,
     });
-    setPreviewImages(product.images || []);
+    // Show existing image if available
+    if (product.image_data && product.image_type) {
+      setPreviewImages([`data:${product.image_type};base64,${product.image_data}`]);
+    } else {
+      setPreviewImages([]);
+    }
     setIsDialogOpen(true);
   };
 
@@ -525,18 +538,13 @@ const ProductsManager = () => {
               <TableRow key={product.id}>
                 <TableCell>
                   <div className="flex items-center space-x-3">
-                    {product.images && product.images.length > 0 && (
+                    {(product.image_data || product.image_url || product.images?.length > 0) && (
                       <div className="relative w-12 h-12">
                         <img
-                          src={product.images[0]}
+                          src={getImageUrl(product)}
                           alt={product.name}
                           className="w-full h-full object-cover rounded"
                         />
-                        {product.images.length > 1 && (
-                          <span className="absolute -top-1 -right-1 bg-primary text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
-                            +{product.images.length - 1}
-                          </span>
-                        )}
                       </div>
                     )}
                     <div>

@@ -12,6 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Switch } from '@/components/ui/switch';
 import { Plus, Edit, Trash2, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 const FlashSalesManager = () => {
   const { 
@@ -308,11 +309,14 @@ const FlashSalesManager = () => {
               <TableRow key={sale.id}>
                 <TableCell>
                   <div className="flex items-center space-x-2">
-                    {sale.products?.image_url && (
+                    {sale.products && (
                       <img
-                        src={sale.products.image_url}
+                        src={getProductImageUrl(sale.products)}
                         alt={sale.products.name}
                         className="w-8 h-8 object-cover rounded"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder-product.jpg';
+                        }}
                       />
                     )}
                     <span className="font-medium">{sale.products?.name}</span>

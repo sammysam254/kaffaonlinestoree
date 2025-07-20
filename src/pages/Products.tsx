@@ -11,6 +11,7 @@ import { useCart } from '@/hooks/useCart';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ProductModal from '@/components/ProductModal';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 interface Product {
   id: string;
@@ -198,10 +199,13 @@ const Products = () => {
               <Card key={product.id} className="border border-gray-200 rounded-lg overflow-hidden bg-white">
                 <div className="relative aspect-square bg-gray-50 p-2">
                   <img
-                    src={product.images?.[0] || product.image_url || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=300&fit=crop&crop=center'}
+                    src={getProductImageUrl(product)}
                     alt={product.name}
                     className="w-full h-full object-contain cursor-pointer"
                     onClick={() => handleProductClick(product)}
+                    onError={(e) => {
+                      e.currentTarget.src = '/placeholder-product.jpg';
+                    }}
                   />
                   
                   {product.badge && (

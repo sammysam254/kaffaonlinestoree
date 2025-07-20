@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Star, ShoppingCart, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCart } from '@/hooks/useCart';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 interface Product {
   id: string;
@@ -69,9 +70,12 @@ const ProductModal = ({ product, isOpen, onClose }: ProductModalProps) => {
           <div className="relative">
             <div className="relative aspect-square w-full bg-gray-100 rounded-lg overflow-hidden">
               <img
-                src={product.images[currentImageIndex] || product.image_url || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=300&fit=crop&crop=center'}
+                src={product.images?.[currentImageIndex] || getProductImageUrl(product)}
                 alt={product.name}
                 className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.src = '/placeholder-product.jpg';
+                }}
               />
               
               {product.images.length > 1 && (

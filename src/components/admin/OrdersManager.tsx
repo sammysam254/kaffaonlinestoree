@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Eye, Package, Truck, CheckCircle, XCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 const OrdersManager = () => {
   const { fetchOrders, createOrder, updateOrderStatus, fetchProducts } = useAdmin();
@@ -356,11 +357,14 @@ const OrdersManager = () => {
                             <div>
                               <h4 className="font-semibold mb-2">Product Details</h4>
                               <div className="flex items-center space-x-3 p-3 border rounded-lg">
-                                {selectedOrder.products?.image_url && (
+                                {selectedOrder.products && (
                                   <img
-                                    src={selectedOrder.products.image_url}
+                                    src={getProductImageUrl(selectedOrder.products)}
                                     alt={selectedOrder.products.name}
                                     className="w-16 h-16 object-cover rounded"
+                                    onError={(e) => {
+                                      e.currentTarget.src = '/placeholder-product.jpg';
+                                    }}
                                   />
                                 )}
                                 <div className="flex-1">

@@ -150,8 +150,8 @@ const UsersManager = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm text-muted-foreground">
-                          Email from auth system
+                        <div className="text-sm">
+                          {user.email || 'No email'}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -226,8 +226,8 @@ const UsersManager = () => {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-sm text-muted-foreground">
-                        Email from auth system
+                      <div className="text-sm">
+                        {user.email || 'No email'}
                       </div>
                     </TableCell>
                     <TableCell>

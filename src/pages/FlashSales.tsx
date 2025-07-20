@@ -10,6 +10,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 const FlashSales = () => {
   const { fetchFlashSales } = useAdmin();
@@ -74,7 +75,7 @@ const FlashSales = () => {
       id: sale.product_id,
       name: sale.products.name,
       price: sale.sale_price,
-      image: sale.products.image_url || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=400&h=400&fit=crop&crop=center'
+      image: getProductImageUrl(sale.products)
     });
 
     toast.success(`${sale.products.name} added to cart at flash sale price!`);
@@ -138,11 +139,14 @@ const FlashSales = () => {
                       </Badge>
                     </div>
                     
-                    {sale.products?.image_url && (
+                    {sale.products && (
                       <img
-                        src={sale.products.image_url}
+                        src={getProductImageUrl(sale.products)}
                         alt={sale.products.name}
                         className="w-full h-48 object-cover rounded-lg mb-4"
+                        onError={(e) => {
+                          e.currentTarget.src = '/placeholder-product.jpg';
+                        }}
                       />
                     )}
                     

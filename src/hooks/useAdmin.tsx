@@ -490,7 +490,7 @@ export const useAdmin = () => {
   const createFlashSale = async (flashSale: any) => {
     const { data, error } = await supabase
       .from('flash_sales')
-      .insert([{ ...flashSale, created_by: user?.id }])
+      .insert([flashSale])
       .select()
       .single();
 

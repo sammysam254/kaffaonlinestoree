@@ -11,6 +11,7 @@ import { toast } from 'sonner';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import FeedbackForm from '@/components/FeedbackForm';
+import { getProductImageUrl } from '@/utils/imageUtils';
 
 interface Order {
   id: string;
@@ -236,9 +237,12 @@ const MyOrders = () => {
                     {order.products && (
                       <div className="flex items-center space-x-4">
                         <img
-                          src={order.products.image_url || 'https://images.unsplash.com/photo-1587831990711-23ca6441447b?w=100&h=100&fit=crop&crop=center'}
+                          src={getProductImageUrl(order.products)}
                           alt={order.products.name}
                           className="w-16 h-16 object-cover rounded"
+                          onError={(e) => {
+                            e.currentTarget.src = '/placeholder-product.jpg';
+                          }}
                         />
                         <div className="flex-1">
                           <h3 className="font-semibold">{order.products.name}</h3>

@@ -31,7 +31,7 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
 const WEBSITE_CONTEXT = `
-You are an AI customer service agent for SmartHub Computers, a computer store in Kenya that sells:
+You are an AI customer service agent for Kaffa Online Store, a computer store in Kenya that sells:
 
 PRODUCTS & SERVICES:
 - Laptops: Gaming laptops, business laptops, ultrabooks
@@ -43,8 +43,8 @@ BUSINESS INFO:
 - Location: Koinange Street, Uniafric House Room 208, Nairobi, Kenya
 - Hours: Monday to Saturday, 9 AM to 6 PM
 - Phone: 0704144239
-- Email: smarthub278@gmail.com
-- Website: https://smarthubcomputers.com
+- Email: kaffa@kaffaonline.store
+- Website: https://kaffaonline.store
 - Website features: Products catalog, flash sales, vouchers, user accounts, cart system
 
 PRICING & PAYMENT:
@@ -66,11 +66,11 @@ WARRANTIES & SUPPORT:
 - Technical support and customer service
 
 STOCK & PRODUCT QUERIES:
-- For current stock availability and detailed product information, refer customers to visit https://smarthubcomputers.com
+- For current stock availability and detailed product information, refer customers to visit https://kaffaonline.store
 - The website has the most up-to-date inventory and product specifications
 - Customers can browse categories, compare products, and check real-time availability
 
-Act as a helpful, knowledgeable customer service representative. When customers ask about stock or specific product availability, direct them to check https://smarthubcomputers.com for the most current information. If customers need human assistance, inform them you can create a support ticket for them.
+Act as a helpful, knowledgeable customer service representative. When customers ask about stock or specific product availability, direct them to check https://kaffaonline.store for the most current information. If customers need human assistance, inform them you can create a support ticket for them.
 `;
 
 serve(async (req) => {
@@ -114,7 +114,7 @@ async function handleChat(data: ChatRequest): Promise<Response> {
     // Build conversation context
     const messages = [
       { role: 'user', parts: [{ text: WEBSITE_CONTEXT }] },
-      { role: 'model', parts: [{ text: 'I understand. I am now ready to assist customers of SmartHub Computers with their inquiries.' }] },
+      { role: 'model', parts: [{ text: 'I understand. I am now ready to assist customers of Kaffa Online Store with their inquiries.' }] },
       ...conversationHistory.map(msg => ({
         role: msg.role === 'user' ? 'user' : 'model',
         parts: [{ text: msg.content }]
@@ -161,7 +161,7 @@ async function handleChat(data: ChatRequest): Promise<Response> {
   } catch (error) {
     console.error('Error calling Gemini API:', error);
     return new Response(JSON.stringify({ 
-      response: 'I apologize, but I\'m experiencing technical difficulties. Please contact our support team at smarthub278@gmail.com or call 0704144239 for immediate assistance.',
+      response: 'I apologize, but I\'m experiencing technical difficulties. Please contact our support team at kaffa@kaffaonline.store or call 0704144239 for immediate assistance.',
       error: error.message 
     }), {
       status: 500,
